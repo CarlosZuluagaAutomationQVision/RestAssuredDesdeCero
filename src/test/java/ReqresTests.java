@@ -10,9 +10,15 @@ import io.restassured.filter.log.ErrorLoggingFilter;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
+import io.restassured.http.Headers;
+import io.restassured.response.Response;
+import java.util.List;
+import java.util.Map;
 import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
+
+import static io.restassured.path.json.JsonPath.from;
 
 public class ReqresTests {
 
@@ -107,4 +113,52 @@ public class ReqresTests {
     assertThat(trabajoActualizado, equalTo("Automatizador"));
   }
 
+  @Test
+  public void getListUsers(){
+    Response response = given()
+        .get("users?page=2");
+
+    Headers headers = response.getHeaders();
+    int statusCode = response.statusCode();
+    String body = response.getBody().asString();
+    String contentType = response.getContentType();
+
+    assertThat(statusCode, equalTo(HttpStatus.SC_OK));
+    System.out.println("Body: " + body);
+    System.out.println("ContentType: " + contentType);
+    System.out.println("Headers: " + headers.toString());
+
+    System.out.println(headers.get("Content-Type"));
+
+  }
+
+  @Test
+  public void getAllUsers() {
+
+    String response = given()
+        .when()
+        .get("users?page=2")
+        .then()
+        .extract()
+        .body()
+        .asString();
+
+    int page = from(response).get("page");
+    int totalPages = from(response).get("total_pages");
+    int idFirstUser = from(response).get("data[0].id");
+
+    System.out.println("Page: " + page);
+    System.out.println("Total_Pages: " + totalPages);
+    System.out.println("Id First User" + idFirstUser);
+
+    List<Map> usersWhitIdGreaterThan10 = from(response).get("data.findAll {user -> user.id > 10}");
+    String emailFirstUserId = usersWhitIdGreaterThan10.get(0).get("email").toString();
+
+    System.out.println("email: " + emailFirstUserId);
+
+    List<Map> user = from(response).get("data.findAll { user -> user.id > 10 && user.last_name == 'Howell'}");
+    int id = Integer.valueOf(user.get(0).get("id").toString());
+
+    System.out.println("Id: " + id);
+  }
 }
