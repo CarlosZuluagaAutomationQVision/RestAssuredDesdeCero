@@ -161,4 +161,23 @@ public class ReqresTests {
 
     System.out.println("Id: " + id);
   }
+
+  @Test
+  public void postCreateWhitPojoTest() {
+    String response =
+        given()
+            .when()
+        .body("{\n"
+            + "    \"name\": \"Carlos\",\n"
+            + "    \"job\": \"Automatizador\"\n"
+            + "}")
+        .post("users")
+        .then().extract().body().asString();
+
+    ResponsePostCreate responsePostCreate = from(response).getObject("", ResponsePostCreate.class);
+    System.out.println(responsePostCreate.getId());
+    System.out.println(responsePostCreate.getName());
+    System.out.println(responsePostCreate.getCreatedAt());
+
+  }
 }
