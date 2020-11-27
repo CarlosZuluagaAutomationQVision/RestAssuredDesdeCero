@@ -1,10 +1,13 @@
 import static io.restassured.RestAssured.given;
+import static io.restassured.path.json.JsonPath.from;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.hamcrest.Matchers.notNullValue;
 
-import Models.ResponsePostCreate;
+import Models.post.RequestRegisterUser;
+import Models.post.ResponsePostCreate;
+import Models.post.ResponseRegisterUser;
 import io.restassured.RestAssured;
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.filter.log.ErrorLoggingFilter;
@@ -18,8 +21,6 @@ import java.util.Map;
 import org.apache.http.HttpStatus;
 import org.junit.Before;
 import org.junit.Test;
-
-import static io.restassured.path.json.JsonPath.from;
 
 public class ReqresTests {
 
@@ -115,7 +116,7 @@ public class ReqresTests {
   }
 
   @Test
-  public void getListUsers(){
+  public void getListUsers() {
     Response response = given()
         .get("users?page=2");
 
@@ -157,7 +158,8 @@ public class ReqresTests {
 
     System.out.println("email: " + emailFirstUserId);
 
-    List<Map> user = from(response).get("data.findAll { user -> user.id > 10 && user.last_name == 'Howell'}");
+    List<Map> user = from(response)
+        .get("data.findAll { user -> user.id > 10 && user.last_name == 'Howell'}");
     int id = Integer.valueOf(user.get(0).get("id").toString());
 
     System.out.println("Id: " + id);
@@ -168,17 +170,41 @@ public class ReqresTests {
     String response =
         given()
             .when()
-        .body("{\n"
-            + "    \"name\": \"Carlos\",\n"
-            + "    \"job\": \"Automatizador\"\n"
-            + "}")
-        .post("users")
-        .then().extract().body().asString();
+            .body("{\n"
+                + "    \"name\": \"Carlos\",\n"
+                + "    \"job\": \"Automatizador\"\n"
+                + "}")
+            .post("users")
+            .then().extract().body().asString();
 
     ResponsePostCreate responsePostCreate = from(response).getObject("", ResponsePostCreate.class);
     System.out.println(responsePostCreate.getId());
     System.out.println(responsePostCreate.getName());
     System.out.println(responsePostCreate.getCreatedAt());
+  }
+
+
+  @Test
+  public void postRegisterUser() {
+    RequestRegisterUser requestRegisterUser = new RequestRegisterUser();
+    requestRegisterUser.setEmail("eve.holt@reqres.in");
+    requestRegisterUser.setPassword("pistol");
+
+    ResponseRegisterUser responseRegisterUser =
+        given()
+        .when()
+        .body(requestRegisterUser)
+        .post("register")
+        .then()
+        .extract()
+        .response()
+        .as(ResponseRegisterUser.class);
+
+    assertThat(responseRegisterUser.getId(), equalTo(4));
+    assertThat(responseRegisterUser.getToken(), equalToIgnoringCase("qpwl5tke4pnpja7x4"));
 
   }
+
 }
+
+
