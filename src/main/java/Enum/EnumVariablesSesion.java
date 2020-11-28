@@ -5,7 +5,6 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-
 public enum EnumVariablesSesion {
 
   RESPONSE_REGISTRO_USUARIO("response");
